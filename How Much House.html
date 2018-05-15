@@ -1,0 +1,53 @@
+<html>
+	<head>
+		<style>
+			:root {
+				--myBorderRadius: 0.3em;
+			}
+			
+			.cntr {
+				display: grid;
+				grid-template-columns: 1fr auto 1fr;
+				font-size: 1.3em;
+			}
+
+			.cntr * {
+				grid-column: 2;
+			}
+
+			.inp {
+				outline: none;
+				margin: 0;
+				font-size: 1em;
+				text-align: right;
+				border: none;
+			}
+
+			.income {
+				text-align: center;
+				border-radius: var(--myBorderRadius);
+				border-color: black;
+				border-style: solid;
+				border-width: 1px;
+				padding: 3px;
+				margin: 0px 5px;
+				background: white !important;
+			}
+
+			.income span {
+				color: #888;
+			}
+		</style>
+	</head>
+	<body>
+		<center class="cntr">
+			<span>Current Annual Income:</span>
+			<div class="income">
+				<span>$</span>
+				<input class="inp"/>
+			</div>
+		</center>
+		<script>
+		</script>
+	</body>
+</html>
