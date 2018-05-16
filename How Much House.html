@@ -9,7 +9,7 @@
 				display: grid;
 				grid-template-columns: 1fr auto 1fr;
 				font-size: 1.3em;
-				grid-row-gap: 1em;
+				grid-row-gap: 3em;
 			}
 
 			.cntr div {
@@ -41,6 +41,11 @@
 
 			.userInput div span {
 				color: #888;
+			}
+
+			.out {
+				display: grid;
+				grid-row-gap: 0.5em;
 			}
 
 			.out span {
@@ -101,9 +106,10 @@
 				</div>
 			</div>
 			<div class="out">
-				You can afford a home that is worth <span id="out_worth">$0</span>.<br/>
-				The down payment will be <span id="">$0</span><br/>
-				The loan will be <span id="out_loan">$0</span>
+				<div>You can afford a home that is worth <span id="out_worth">$0</span>.</div>
+				<div>The down payment will be <span id="out_down">$0</span>.</div>
+				<div>The loan will be <span id="out_loan">$0</span>.</div>
+				<div>The payment will be <span id="out_payment">$0</span>.</div>
 			</div>
 		</center>
 		<script>
@@ -136,26 +142,85 @@ function getLoanAndHomeByMaxPmt(userInfo){
 	return {};
 }
 
+// mutate userInfo
+function addDownPaymentToUserInfo(userInfo){
+	userInfo.downPayment = userInfo.alreadySaved + userInfo.savedPerMonth * userInfo.waitDuration;
+}
+
 /** 
 	RETURNS:
 		Object - contains loan and home amount, and payment
 */
-function getLoadAndHome(userInfo){
-	let lh = getLoanAndHomeByPercentDown(userInfo);
-	const lh_maxpmt = getLoanAndHomeByMaxPmt(userInfo);
+function getLoanAndHome(userInfo){
+	let lnh = getLoanAndHomeByPercentDown(userInfo);
+	const lnh_maxpmt = getLoanAndHomeByMaxPmt(userInfo);
 	const maxPmt = getMaxPayment(userInfo);
 
-	if (lh.payment > maxPmt){
-		lh = lh_maxpmt;
+	if (lnh.payment > maxPmt){
+		lnh = lnh_maxpmt;
 	}
-	return lh;
+	return lnh;
 }
 
 function findAndShowResults(userInfo){
-	const lh = getLoadAndHome(userInfo);
+	addDownPaymentToUserInfo(userInfo);
+	const lnh = getLoanAndHome(userInfo);
 
-
+	setText("out_worth", 	lnh.worth);
+	setText("out_down", 	lnh.down);
+	setText("out_loan", 	lnh.loan);
+	setText("out_payment", 	lnh.payment);
 }
+
+function setText(id, str){
+	document.getElementById(id).innerText = str;
+}
+
+// Formatting
+function formatToMoney(num){
+	return num.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+}
+function formatFromMoney(str){
+	return Number(str.replace(/[^0-9\.-]+/g,""));
+}
+function formatMoneyElement(el){
+	el.value = formatToMoney(formatFromMoney(el.value));
+}
+function formatToPercent(num){
+	return num.toFixed(2);
+}
+function formatPercentElement(el){
+	el.value = formatToPercent(Number(el.value));
+}
+let prevTO = 0;
+function makeUpdateCallback(time){
+	return () => {
+		window.clearTimeout(prevTO);
+		prevTO = window.setTimeout(updateResults, time || 0)
+	};
+}
+const reformatMap = {
+	"money": formatMoneyElement,
+	"percent": formatPercentElement,
+}
+const queryForInputs = ".userInput div input";
+function reformatInputs(){
+	document.querySelectorAll(queryForInputs)
+	.forEach(el => {
+		if (reformatMap.hasOwnProperty(el.dataset.type)){
+			reformatMap[el.dataset.type](el);
+		}
+	});
+}
+function addHandlersToInputs(){
+	// Formatting the inputs after timeout or on blur
+	document.querySelectorAll(queryForInputs)
+	.forEach(el => {
+		el.oninput = makeUpdateCallback(2000);
+		el.onblur = makeUpdateCallback(0);
+	});
+}
+addHandlersToInputs();
 
 		</script>
 	</body>
