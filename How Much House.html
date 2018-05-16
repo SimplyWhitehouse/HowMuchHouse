@@ -22,11 +22,12 @@
 				font-size: 1em;
 				text-align: right;
 				border: none;
+				width: 100%;
 			}
 
-			.income {
+			.userInput div {
 				display: grid;
-				grid-template-columns: auto 1fr;
+				grid-template-columns: auto auto;
 
 				text-align: center;
 				border-radius: var(--myBorderRadius);
@@ -38,28 +39,124 @@
 				background: white !important;
 			}
 
-			.income span {
+			.userInput div span {
 				color: #888;
 			}
+
+			.out span {
+				font-size: 1.2em;
+			}
+
+			.in {
+				display: grid;
+				grid-row-gap: 1.5em;
+			}
+
 		</style>
 	</head>
 	<body>
 		<center class="cntr">
-			<div> <!-- Income -->
-				Current Annual Income:
-				<div class="income">
-					<span>$</span>
-					<input class="inp" size="5"/>
+			<div class="in">
+				<div class="userInput">
+					Monthly Take Home Pay:
+					<div class="money">
+						<span>$</span>
+						<input class="inp" value="3,000"/>
+					</div>
+				</div>
+				<div class="userInput">
+					Money Saved Per Month:
+					<div class="money">
+						<span>$</span>
+						<input class="inp" value="1,000"/>
+					</div>
+				</div>
+				<div class="userInput">
+					How Long Till You Buy:
+					<div class="time">
+						<span>Months</span>
+						<input class="inp" value="12"/>
+					</div>
+				</div>
+				<div class="userInput">
+					Money Already Saved:
+					<div class="money">
+						<span>$</span>
+						<input class="inp" value="0"/>
+					</div>
+				</div>
+				<div class="userInput">
+					Annual Loan Rate:
+					<div class="percent">
+						<span>%</span>
+						<input class="inp" value="3.75"/>
+					</div>
+				</div>
+				<div class="userInput">
+					Loan Duration:
+					<div class="time">
+						<span>Years</span>
+						<input class="inp" value="15"/>
+					</div>
 				</div>
 			</div>
-			<div>
-				You can Afford
-				<div>
-					BLAH
-				</div>
+			<div class="out">
+				You can afford a home that is worth <span id="out_worth">$0</span>.<br/>
+				The down payment will be <span id="">$0</span><br/>
+				The loan will be <span id="out_loan">$0</span>
 			</div>
 		</center>
 		<script>
+
+/** Grab the data from the user inputs
+	RETURNS:
+		Object - Contains all of the named values from the user input
+*/
+function getUserInfo(){
+	return {};
+}
+
+function getMaxPayment(userInfo){
+	return 0;
+}
+
+/** 
+	RETURNS:
+		Object - contains loan and home amount, and payment
+*/
+function getLoanAndHomeByPercentDown(userInfo){
+	return {};
+}
+
+/** 
+	RETURNS:
+		Object - contains loan and home amount, and payment
+*/
+function getLoanAndHomeByMaxPmt(userInfo){
+	return {};
+}
+
+/** 
+	RETURNS:
+		Object - contains loan and home amount, and payment
+*/
+function getLoadAndHome(userInfo){
+	let lh = getLoanAndHomeByPercentDown(userInfo);
+	const lh_maxpmt = getLoanAndHomeByMaxPmt(userInfo);
+	const maxPmt = getMaxPayment(userInfo);
+
+	if (lh.payment > maxPmt){
+		lh = lh_maxpmt;
+	}
+	return lh;
+}
+
+function findAndShowResults(userInfo){
+	const lh = getLoadAndHome(userInfo);
+
+
+}
+
 		</script>
 	</body>
 </html>
