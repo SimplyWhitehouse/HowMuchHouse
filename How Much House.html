@@ -48,7 +48,7 @@
 				grid-row-gap: 0.5em;
 			}
 
-			.out span {
+			.outResult {
 				font-size: 1.2em;
 			}
 
@@ -66,14 +66,14 @@
 					Monthly Take Home Pay:
 					<div class="money">
 						<span>$</span>
-						<input class="inp" value="3,000" id="in_takeHome"/>
+						<input class="inp" value="3,000" id="in_takeHome" data-type="money"/>
 					</div>
 				</div>
 				<div class="userInput">
 					Money Saved Per Month:
 					<div class="money">
 						<span>$</span>
-						<input class="inp" value="1,000" id="in_savedPerMonth"/>
+						<input class="inp" value="1,000" id="in_savedPerMonth" data-type="money"/>
 					</div>
 				</div>
 				<div class="userInput">
@@ -87,14 +87,14 @@
 					Money Already Saved:
 					<div class="money">
 						<span>$</span>
-						<input class="inp" value="0" id="in_alreadySaved"/>
+						<input class="inp" value="0" id="in_alreadySaved" data-type="money"/>
 					</div>
 				</div>
 				<div class="userInput">
 					Annual Loan Rate:
 					<div class="percent">
 						<span>%</span>
-						<input class="inp" value="3.75" id="in_annualLoanRate"/>
+						<input class="inp" value="3.75" id="in_annualLoanRate" data-type="percent"/>
 					</div>
 				</div>
 				<div class="userInput">
@@ -106,10 +106,22 @@
 				</div>
 			</div>
 			<div class="out">
-				<div>You can afford a home that is worth <span id="out_worth">$0</span>.</div>
-				<div>The down payment will be <span id="out_down">$0</span>.</div>
-				<div>The loan will be <span id="out_loan">$0</span>.</div>
-				<div>The payment will be <span id="out_payment">$0</span>.</div>
+				<div>
+					You can afford a home that is worth<br/>
+					<span class="outResult">$<span id="out_worth" data-type="money">0</span></span>
+				</div>
+				<div>
+					with a down payment of<br/>
+					<span class="outResult">$<span id="out_down" data-type="money">0</span></span>
+				</div>
+				<div>
+					and a loan for<br/>
+					<span class="outResult">$<span id="out_loan" data-type="money">0</span></span>
+				</div>
+				<div>
+					You'll have a monthly payment of<br/>
+					<span class="outResult">$<span id="out_payment" data-type="money">0</span></span>
+				</div>
 			</div>
 		</center>
 		<script>
@@ -136,14 +148,20 @@ function getUserInfo(){
 		userInfo[key] = getValue("in_" + key);
 	}
 
+
+	// Extra manipulation
 	userInfo.annualLoanRate = userInfo.annualLoanRate * 0.01;
 
-	addDownPaymentToUserInfo(userInfo);
+	userInfo.monthlyLoanRate = userInfo.annualLoanRate / 12;
+
+	userInfo.downPayment = getDownPaymentToUserInfo(userInfo);
+
+	userInfo.maxMonthlyPayment = getMaxMonthlyPayment(userInfo);
 
 	return userInfo;
 }
 
-function getMaxPayment(userInfo){
+function getMaxMonthlyPayment(userInfo){
 	return userInfo.takeHome * 0.25;
 }
 
@@ -160,9 +178,7 @@ function getLoanAndHomeByPercentDown(userInfo){
 
 	result.worth = result.downPayment + result.loan;
 
-	const monthlyRate = userInfo.annualLoanRate/12;
-
-	result.payment = monthlyRate*result.loan/(1-Math.pow(1+monthlyRate, -userInfo.loanDuration*12));
+	result.payment = userInfo.monthlyLoanRate*result.loan/(1-Math.pow(1+userInfo.monthlyLoanRate, -userInfo.loanDuration*12));
 
 	return result;
 }
@@ -172,12 +188,22 @@ function getLoanAndHomeByPercentDown(userInfo){
 		Object - contains loan amount, home worth, downpayment, and monthly payment
 */
 function getLoanAndHomeByMaxPmt(userInfo){
-	return {};
+	let result = {};
+
+	result.downPayment = userInfo.downPayment
+
+	result.loan = (userInfo.maxMonthlyPayment*Math.pow(userInfo.monthlyLoanRate+1, -userInfo.loanDuration*12)*(Math.pow(userInfo.monthlyLoanRate+1, userInfo.loanDuration*12)-1))/(userInfo.monthlyLoanRate);
+
+	result.worth = result.downPayment + result.loan;
+
+	result.payment = userInfo.maxMonthlyPayment;
+
+	return result;
 }
 
 // mutate userInfo
-function addDownPaymentToUserInfo(userInfo){
-	userInfo.downPayment = userInfo.alreadySaved + userInfo.savedPerMonth * userInfo.waitDuration;
+function getDownPaymentToUserInfo(userInfo){
+	return userInfo.alreadySaved + userInfo.savedPerMonth * userInfo.waitDuration;
 }
 
 /** 
@@ -187,27 +213,28 @@ function addDownPaymentToUserInfo(userInfo){
 function getLoanAndHome(userInfo){
 	let lnh = getLoanAndHomeByPercentDown(userInfo);
 	const lnh_maxpmt = getLoanAndHomeByMaxPmt(userInfo);
-	const maxPmt = getMaxPayment(userInfo);
 
-	if (lnh.payment > maxPmt){
+	if (lnh.payment > userInfo.maxMonthlyPayment){
 		lnh = lnh_maxpmt;
 	}
 	return lnh;
 }
 
-function findAndShowResults(userInfo){
-	const lnh = getLoanAndHome(userInfo);
+function findAndShowResults(){
+	reformatInputs();
 
-	setText("out_worth", 	lnh.worth);
-	setText("out_down", 	lnh.down);
-	setText("out_loan", 	lnh.loan);
-	setText("out_payment", 	lnh.payment);
+	const lnh = getLoanAndHome(getUserInfo());
+
+	setText("out_worth", 	formatToMoney(lnh.worth));
+	setText("out_down", 	formatToMoney(lnh.downPayment));
+	setText("out_loan", 	formatToMoney(lnh.loan));
+	setText("out_payment", 	formatToMoney(lnh.payment));
 }
 
 
 // Manipulate elements
 function setText(id, str){
-	document.getElementById(id).innerText = str;
+	document.getElementById(id).innerHTML = str;
 }
 
 function getValue(id){
@@ -217,7 +244,7 @@ function getValue(id){
 
 // Formatting
 function formatToMoney(num){
-	return num.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
+	return num.toFixed(0).replace(/(\d)(?=(\d{3})+$)/g, '$1,');
 }
 function formatFromMoney(str){
 	return Number(str.replace(/[^0-9\.-]+/g,""));
@@ -235,7 +262,7 @@ let prevTO = 0;
 function makeUpdateCallback(time){
 	return () => {
 		window.clearTimeout(prevTO);
-		prevTO = window.setTimeout(updateResults, time || 0)
+		prevTO = window.setTimeout(findAndShowResults, time || 0)
 	};
 }
 const reformatMap = {
@@ -247,7 +274,7 @@ function reformatInputs(){
 	document.querySelectorAll(queryForInputs)
 	.forEach(el => {
 		if (reformatMap.hasOwnProperty(el.dataset.type)){
-			reformatMap[el.dataset.type](el);
+			return reformatMap[el.dataset.type](el);
 		}
 	});
 }
@@ -259,7 +286,10 @@ function addHandlersToInputs(){
 		el.onblur = makeUpdateCallback(0);
 	});
 }
+
+// Final setup
 addHandlersToInputs();
+findAndShowResults();
 
 		</script>
 	</body>
