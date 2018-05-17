@@ -66,42 +66,42 @@
 					Monthly Take Home Pay:
 					<div class="money">
 						<span>$</span>
-						<input class="inp" value="3,000"/>
+						<input class="inp" value="3,000" id="in_takeHome"/>
 					</div>
 				</div>
 				<div class="userInput">
 					Money Saved Per Month:
 					<div class="money">
 						<span>$</span>
-						<input class="inp" value="1,000"/>
+						<input class="inp" value="1,000" id="in_savedPerMonth"/>
 					</div>
 				</div>
 				<div class="userInput">
 					How Long Till You Buy:
 					<div class="time">
 						<span>Months</span>
-						<input class="inp" value="12"/>
+						<input class="inp" value="12" id="in_waitDuration"/>
 					</div>
 				</div>
 				<div class="userInput">
 					Money Already Saved:
 					<div class="money">
 						<span>$</span>
-						<input class="inp" value="0"/>
+						<input class="inp" value="0" id="in_alreadySaved"/>
 					</div>
 				</div>
 				<div class="userInput">
 					Annual Loan Rate:
 					<div class="percent">
 						<span>%</span>
-						<input class="inp" value="3.75"/>
+						<input class="inp" value="3.75" id="in_annualLoanRate"/>
 					</div>
 				</div>
 				<div class="userInput">
 					Loan Duration:
 					<div class="time">
 						<span>Years</span>
-						<input class="inp" value="15"/>
+						<input class="inp" value="15" id="in_loanDuration"/>
 					</div>
 				</div>
 			</div>
@@ -114,29 +114,62 @@
 		</center>
 		<script>
 
+const PRECENTDOWN = 0.2;
+
 /** Grab the data from the user inputs
 	RETURNS:
 		Object - Contains all of the named values from the user input
 */
 function getUserInfo(){
-	return {};
+	const keys = [
+		"takeHome",
+		"savedPerMonth",
+		"waitDuration",
+		"alreadySaved",
+		"annualLoanRate",
+		"loanDuration"
+	];
+
+	let userInfo = {};
+
+	for (key of keys){
+		userInfo[key] = getValue("in_" + key);
+	}
+
+	userInfo.annualLoanRate = userInfo.annualLoanRate * 0.01;
+
+	addDownPaymentToUserInfo(userInfo);
+
+	return userInfo;
 }
 
 function getMaxPayment(userInfo){
-	return 0;
+	return userInfo.takeHome * 0.25;
 }
 
 /** 
 	RETURNS:
-		Object - contains loan and home amount, and payment
+		Object - contains loan amount, home worth, downpayment, and monthly payment
 */
 function getLoanAndHomeByPercentDown(userInfo){
-	return {};
+	let result = {};
+
+	result.downPayment = userInfo.downPayment
+
+	result.loan = result.downPayment / PRECENTDOWN;
+
+	result.worth = result.downPayment + result.loan;
+
+	const monthlyRate = userInfo.annualLoanRate/12;
+
+	result.payment = monthlyRate*result.loan/(1-Math.pow(1+monthlyRate, -userInfo.loanDuration*12));
+
+	return result;
 }
 
 /** 
 	RETURNS:
-		Object - contains loan and home amount, and payment
+		Object - contains loan amount, home worth, downpayment, and monthly payment
 */
 function getLoanAndHomeByMaxPmt(userInfo){
 	return {};
@@ -149,7 +182,7 @@ function addDownPaymentToUserInfo(userInfo){
 
 /** 
 	RETURNS:
-		Object - contains loan and home amount, and payment
+		Object - contains loan amount, home worth, downpayment, and monthly payment
 */
 function getLoanAndHome(userInfo){
 	let lnh = getLoanAndHomeByPercentDown(userInfo);
@@ -163,7 +196,6 @@ function getLoanAndHome(userInfo){
 }
 
 function findAndShowResults(userInfo){
-	addDownPaymentToUserInfo(userInfo);
 	const lnh = getLoanAndHome(userInfo);
 
 	setText("out_worth", 	lnh.worth);
@@ -172,8 +204,15 @@ function findAndShowResults(userInfo){
 	setText("out_payment", 	lnh.payment);
 }
 
+
+// Manipulate elements
 function setText(id, str){
 	document.getElementById(id).innerText = str;
+}
+
+function getValue(id){
+	const str = document.getElementById(id).value.replace(",","");
+	return parseFloat(str);
 }
 
 // Formatting
