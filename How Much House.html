@@ -23,6 +23,7 @@
 				text-align: right;
 				border: none;
 				width: 100%;
+				background: inherit;
 			}
 
 			.userInput div {
@@ -36,7 +37,6 @@
 				border-width: 1px;
 				padding: 3px;
 				margin: 5px;
-				background: white !important;
 			}
 
 			.userInput div span {
@@ -45,11 +45,11 @@
 
 			.out {
 				display: grid;
-				grid-row-gap: 0.5em;
+				grid-row-gap: 1em;
 			}
 
 			.outResult {
-				font-size: 1.2em;
+				font-size: 1.5em;
 			}
 
 			.in {
@@ -107,19 +107,19 @@
 			</div>
 			<div class="out">
 				<div>
-					You can afford a home that is worth<br/>
+					HOME WORTH<br/>
 					<span class="outResult">$<span id="out_worth" data-type="money">0</span></span>
 				</div>
 				<div>
-					with a down payment of<br/>
+					DOWN PAYMENT<br/>
 					<span class="outResult">$<span id="out_down" data-type="money">0</span></span>
 				</div>
 				<div>
-					and a loan for<br/>
+					LOAN AMOUNT<br/>
 					<span class="outResult">$<span id="out_loan" data-type="money">0</span></span>
 				</div>
 				<div>
-					You'll have a monthly payment of<br/>
+					MONTHLY PAYMENT<br/>
 					<span class="outResult">$<span id="out_payment" data-type="money">0</span></span>
 				</div>
 			</div>
@@ -286,6 +286,31 @@ function addHandlersToInputs(){
 		el.onblur = makeUpdateCallback(0);
 	});
 }
+
+
+// Colors
+(function(){
+	const svg = document.querySelector(".nav-toggle-label svg");
+	const header = document.getElementById("headerAnnouncementWrapper");
+	const svgStrokeColor = !!svg ? window.getComputedStyle(svg, null).stroke : "#7c0404";	// Dark Red
+	const titleColor = !!header ? window.getComputedStyle(header, null).color : "#01044b";	// Dark Blue
+	const titleBG = /*!!header ? window.getComputedStyle(header, null).backgroundColor : */"#d5d7f1";	// Light Blue
+
+	const inputs = document.querySelectorAll(".userInput div");
+	for (i of inputs){
+		i.oninput = makeUpdateCallback(2000);
+		i.onblur = makeUpdateCallback(0);
+		i.style.color = titleColor;
+		i.style.background = titleBG;
+	}
+	
+	const spans = document.querySelectorAll("span.outResult");
+	for (i of spans){
+		i.style.color = svgStrokeColor; 
+	}
+})()
+
+
 
 // Final setup
 addHandlersToInputs();
